@@ -11,13 +11,14 @@ class Scoreboard:
     player_traveled_display = []
     player_excess_distance_display = []
     player_path_display = []
+    total_nodes_visited_display = [] # New statistic
 
     def __init__(self, batch, group):
         self.batch = batch
         self.group = group
         self.stat_height = 32
         self.stat_width = 400
-        self.number_of_stats = 5
+        self.number_of_stats = 6 # Update to 6 for new statistic
         self.base_height_offset = 20
         self.font_size = 16
         self.distance_to_exit_label = pyglet.text.Label('Direct Distance To Exit : 0', x=0, y=0,
@@ -52,6 +53,10 @@ class Scoreboard:
                                    font_size=self.font_size, batch=batch, group=group, color=player[2][colors.TEXT_INDEX])
             self.player_path_display.append(
                 (path_label, player))
+            # Adds Total Nodes Visited display to screen
+            nodes_visited_label = pyglet.text.Label("Total Nodes Visited: 0", x=0, y=0,
+                                                      font_name='Arial', font_size=self.font_size, batch=batch, group=group, color=player[2][colors.TEXT_INDEX])
+            self.total_nodes_visited_display.append(nodes_visited_label)
 
     def update_elements_locations(self):
         self.distance_to_exit_label.x = config_data.window_width - self.stat_width
@@ -68,6 +73,12 @@ class Scoreboard:
         for index, (display_element, player) in enumerate(self.player_path_display):
             display_element.x = config_data.window_width - self.stat_width
             display_element.y = config_data.window_height - self.base_height_offset - self.stat_height * 5 - self.stat_height * (index * self.number_of_stats)
+        # Controls display of new Nodes Visited statistic
+        for index, display_element in enumerate(self.total_nodes_visited_display):
+            display_element.x = config_data.window_width - self.stat_width
+            display_element.y = config_data.window_height - self.base_height_offset - self.stat_height * 6 - self.stat_height * (index * self.number_of_stats)
+            player_object = global_game_data.player_objects[index]
+            display_element.text = "Total Nodes Visited: " + str(player_object.get_total_nodes_visited())
 
     def update_paths(self):
         for index in range(len(config_data.player_data)):
@@ -96,8 +107,16 @@ class Scoreboard:
                 if player_object.player_config_data == player_configuration_info:
                     display_element.text = "Excess Distance Traveled: " + str(max(0, int(player_object.distance_traveled-self.distance_to_exit)))
 
+    # Controls updating total nodes logic
+    def update_total_nodes_visited(self):
+        for index, display_element in enumerate(self.total_nodes_visited_display):
+            player_object = global_game_data.player_objects[index]
+            display_element.text = "Total Nodes Visited: " + str(player_object.get_total_nodes_visited())
+
     def update_scoreboard(self):
         self.update_elements_locations()
         self.update_paths()
         self.update_distance_to_exit()
         self.update_distance_traveled()
+        # Must update new statistic as well
+        self.update_total_nodes_visited()
