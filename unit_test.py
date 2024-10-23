@@ -2,7 +2,7 @@ import math
 import unittest
 import graph_data
 import global_game_data
-from pathing import get_random_path
+from pathing import get_random_path, get_dfs_path, get_bfs_path
 
 
 
@@ -59,6 +59,69 @@ class TestPathFinding(unittest.TestCase):
         graph = graph_data.graph_data[global_game_data.current_graph_index]
         for i in range(len(path) - 1):
             self.assertIn(path[i+1], graph[path[i]][1], "Each step in the path should only move to a neighbor")
+            
+    # DFS
+    def test_dfs_path_valid_start_and_exit(self):
+        # Test that the path starts at the start node and ends at the exit node
+        path = get_dfs_path()
+        self.assertEqual(path[0], 1, "DFS Path should start at the start node")
+        self.assertEqual(path[-1], len(graph_data.graph_data[global_game_data.current_graph_index]) - 1, "DFS Path should end at the exit node")
+    
+    def test_dfs_path_contains_target(self):
+        # Test that the path contains the target node
+        path = get_dfs_path()
+        target_node = global_game_data.target_node[global_game_data.current_graph_index]
+        self.assertIn(target_node, path, "DFS Path should contain the target node")
+        
+    def test_dfs_path_no_invalid_jumps(self):
+        # Test that the path does not have any invalid jumps to non-neighbors
+        path = get_dfs_path()
+        graph = graph_data.graph_data[global_game_data.current_graph_index]
+        for i in range(len(path) - 1):
+            self.assertIn(path[i+1], graph[path[i]][1], "DFS Path should only move to a neighbor")
+            
+    def test_dfs_path_reaches_exit(self):
+        # Test that the path reaches the exit upon ending
+        path = get_dfs_path()
+        exit_node = len(graph_data.graph_data[global_game_data.current_graph_index]) - 1
+        self.assertEqual(path[-1], exit_node, "DFS Path should reach the exit node")
+        
+    def test_dfs_path_no_cycles(self):
+        # Test that DFS path does not cycle or revisit nodes
+        path = get_dfs_path()
+        self.assertEqual(len(path), len(set(path)), "DFS Path should not contain cycles or revisit nodes")
+            
+    # BFS
+    def test_bfs_path_valid_start_and_exit(self):
+        # Test that the path starts at the start node and ends at the exit node
+        path = get_bfs_path()
+        self.assertEqual(path[0], 1, "BFS Path should start at the start node")
+        self.assertEqual(path[-1], len(graph_data.graph_data[global_game_data.current_graph_index]) - 1, "BFS Path should end at the exit node")
+        
+    def test_bfs_path_contains_target(self):
+        # Test that the path contains the target node
+        path = get_bfs_path()
+        target_node = global_game_data.target_node[global_game_data.current_graph_index]
+        self.assertIn(target_node, path, "BFS Path should contain the target node")
+        
+    def test_bfs_path_no_invalid_jumps(self):
+        # Test that the path does not have any invalid jumps to non-neighbors
+        path = get_bfs_path()
+        graph = graph_data.graph_data[global_game_data.current_graph_index]
+        for i in range(len(path) - 1):
+            self.assertIn(path[i+1], graph[path[i]][1], "BFS Path should only move to a neighbor")
+            
+    def test_bfs_path_reaches_exit(self):
+        # Test that the path reaches the exit upon ending
+        path = get_bfs_path()
+        exit_node = len(graph_data.graph_data[global_game_data.current_graph_index]) - 1
+        self.assertEqual(path[-1], exit_node, "BFS Path should reach the exit node")
+        
+    def test_bfs_path_shortest_distance(self):
+        # Test to ensure BFS path length is always less than or equal to DFS path length
+        bfs_path = get_bfs_path()
+        dfs_path = get_dfs_path()
+        self.assertLessEqual(len(bfs_path), len(dfs_path), "BFS Path should be shorter or equal to DFS path")
 
 if __name__ == '__main__':
     unittest.main()

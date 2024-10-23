@@ -15,7 +15,7 @@ def set_current_graph_paths():
 def get_test_path():
     return graph_data.test_path[global_game_data.current_graph_index]
 
-# Tries 5 or variable amount of times to generate a successful random path
+# Tries 20 or variable amount of times to generate a successful random path
 def get_random_path(max_retries = 20):
     # Get data
     graph = graph_data.graph_data[global_game_data.current_graph_index]
@@ -61,59 +61,91 @@ def get_random_path(max_retries = 20):
     print("Random Path Generator failed after multiple attempts")
     return []
 
-
-# DFS and BFS algorithms found online, implemented to figure out how this stuff works so I can do get_random_path()
+# Creates and returns a DFS path from the start to the end while hitting the target along the way
 def get_dfs_path():
     graph = graph_data.graph_data[global_game_data.current_graph_index]
-    start = 0
-    exit_node = len(graph) - 1
-    visited = set()
-    
-    def dfs(node, path):
-        visited.add(node)
-        path.append(node)
-
-        if node == exit_node:
-            return path
-
-        for neighbor in graph[node][1]:
-            if neighbor not in visited:
-                result = dfs(neighbor, path)
-                if result: 
-                    return result
-        path.pop()
-        return None
-    path = []
-    dfs_path = dfs(start, path)
-    return dfs_path if dfs_path else []
-
-
-def get_bfs_path():
-    graph = graph_data.graph_data[global_game_data.current_graph_index]
-    
     start_node = 0
     exit_node = len(graph) - 1
+    target_node = global_game_data.target_node[global_game_data.current_graph_index]
     
-    queue = deque([[start_node]])
-    visited = set()
-
-    
-    while queue:
-        path = queue.popleft()
-        current_node = path[-1]
-
-        if current_node == exit_node:
-            return path
-
-        if current_node not in visited:
+    # Helper function gives a DFS search from a starting node to a target node
+    def dfs_search(start, target):
+        stack = [(start, [start])]
+        visited = set()
+        
+        while stack:
+            (current_node, path) = stack.pop()
+            if current_node in visited:
+                continue
             visited.add(current_node)
-            
+            if current_node == target:
+                return path
             for neighbor in graph[current_node][1]:
                 if neighbor not in visited:
-                    new_path = list(path)
-                    new_path.append(neighbor)
-                    queue.append(new_path)
-    return []
+                    stack.append((neighbor, path + [neighbor]))
+        return []
+    
+    # Gets DFS path from start to target and then target to exit
+    start_to_target_path = dfs_search(start_node, target_node)
+    target_to_exit_path = dfs_search(target_node, exit_node)
+    
+    # Combines the two and returns path if it exists or empty array if it does not
+    if start_to_target_path and target_to_exit_path:
+        full_path = start_to_target_path + target_to_exit_path[1:]
+        full_path = full_path[1:]
+        
+        # Postconditions a, b, c
+        assert target_node in full_path, "Path must include the target node"
+        assert full_path[-1] == exit_node, "Path must end at the exit node"
+        for i in range(len(full_path) - 1):
+            assert full_path[i+1] in graph[full_path[i]][1], f"Vertices {full_path[i]} and {full_path[i+1]} must be connected"
+        
+        return full_path
+    else:
+        return []
+
+# Creates and returns a BFS path from the start to the end while hitting the target along the way
+def get_bfs_path():
+    graph = graph_data.graph_data[global_game_data.current_graph_index]
+    start_node = 0
+    exit_node = len(graph) - 1
+    target_node = global_game_data.target_node[global_game_data.current_graph_index]
+    
+    # Helper function gives a BFS search from a starting node to a target node
+    def bfs_search(start, target):
+        queue = deque([(start, [start])])
+        visited = set()
+        
+        while queue:
+            current_node, path = queue.popleft()
+            if current_node in visited:
+                continue
+            visited.add(current_node)
+            if current_node == target:
+                return path
+            for neighbor in graph[current_node][1]:
+                if neighbor not in visited:
+                    queue.append((neighbor, path + [neighbor]))
+        return []
+    
+    # Gets BFS path from start to target and then target to exit
+    start_to_target_path = bfs_search(start_node, target_node)
+    target_to_exit_path = bfs_search(target_node, exit_node)
+    
+    # Combines the two and returns path if it exists or empty array if it does not
+    if start_to_target_path and target_to_exit_path:
+        full_path = start_to_target_path + target_to_exit_path[1:]
+        full_path = full_path[1:]
+        
+        # Postconditions a, b, c
+        assert target_node in full_path, "Path must include the target node"
+        assert full_path[-1] == exit_node, "Path must end at the exit node"
+        for i in range(len(full_path) - 1):
+            assert full_path[i+1] in graph[full_path[i]][1], f"Vertices {full_path[i]} and {full_path[i+1]} must be connected"
+        
+        return full_path
+    else:
+        return []
 
 
 def get_dijkstra_path():
