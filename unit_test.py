@@ -131,6 +131,12 @@ class TestPathFinding(unittest.TestCase):
         perms = list(sjt_perms(3))
         expected = [[1, 2, 3], [1, 3, 2], [3, 1, 2], [3, 2, 1], [2, 3, 1], [2, 1, 3]]
         self.assertEqual(perms, expected, "SJT permutations failed for n=3")
+        
+    def test_sjt_perms2(self):
+        # Test SJT with a small example
+        perms = list(sjt_perms(2))
+        expected = [[1, 2], [2, 1]]
+        self.assertEqual(perms, expected, "SJT permutations failed for n=2")
 
     def test_ham_cycle_exists(self):
         # Test with a graph known to have a Hamiltonian cycle

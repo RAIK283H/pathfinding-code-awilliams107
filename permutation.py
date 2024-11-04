@@ -1,4 +1,3 @@
-import graph_data
 import perm_test_graph_data
 
 def sjt_perms(n):
@@ -38,10 +37,10 @@ def has_ham_cycle(graph):
     for perm in sjt_perms(n):
         cycle = [0] + perm + [len(graph) - 1]
         
-        # Test to see if the cycle is valid
+        # Test to see if cycle is valid
         valid_cycle = all(cycle[i + 1] in graph[cycle[i]][1] for i in range(len(cycle) - 1))
-        # Append valid Hamiltonian cycle
-        if valid_cycle and cycle not in ham_cycles:
+        
+        if valid_cycle:
             ham_cycles.append(cycle)
     
     # Print and return all valid Hamiltonian cycles or return -1 if no valid cycles exist
@@ -53,6 +52,11 @@ def has_ham_cycle(graph):
         print("No Hamiltonian cycle found.")
         return -1
 
-# In-line tests used for verification before unit tests
-# print(has_ham_cycle(perm_test_graph_data.perm_test_graph_data[0]))
-# print(has_ham_cycle(perm_test_graph_data.perm_test_graph_data[1]))
+'''
+# Tests used for verification before unit tests
+print()
+(has_ham_cycle(perm_test_graph_data.perm_test_graph_data[0]))
+print()
+(has_ham_cycle(perm_test_graph_data.perm_test_graph_data[1]))
+print()
+'''
