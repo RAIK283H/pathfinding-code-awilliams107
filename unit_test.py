@@ -3,6 +3,8 @@ import unittest
 import graph_data
 import global_game_data
 from pathing import get_random_path, get_dfs_path, get_bfs_path
+from permutation import sjt_perms, has_ham_cycle
+import perm_test_graph_data
 
 
 
@@ -122,6 +124,23 @@ class TestPathFinding(unittest.TestCase):
         bfs_path = get_bfs_path()
         dfs_path = get_dfs_path()
         self.assertLessEqual(len(bfs_path), len(dfs_path), "BFS Path should be shorter or equal to DFS path")
+        
+    # Permutation Tests
+    def test_sjt_perms(self):
+        # Test SJT with a small example
+        perms = list(sjt_perms(3))
+        expected = [[1, 2, 3], [1, 3, 2], [3, 1, 2], [3, 2, 1], [2, 3, 1], [2, 1, 3]]
+        self.assertEqual(perms, expected, "SJT permutations failed for n=3")
+
+    def test_ham_cycle_exists(self):
+        # Test with a graph known to have a Hamiltonian cycle
+        result = has_ham_cycle(graph_data.graph_data[0])
+        self.assertNotEqual(result, -1, "Expected Hamiltonian cycle but found none")
+
+    def test_no_ham_cycle(self):
+        # Test with a graph known to have no Hamiltonian cycle
+        result = has_ham_cycle(perm_test_graph_data.perm_test_graph_data[0])
+        self.assertEqual(result, -1, "Expected no Hamiltonian cycle but found one")
 
 if __name__ == '__main__':
     unittest.main()
