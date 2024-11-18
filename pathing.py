@@ -2,6 +2,7 @@ import graph_data
 import global_game_data
 from numpy import random
 from collections import deque
+import heapq
 
 def set_current_graph_paths():
     global_game_data.graph_paths.clear()
@@ -149,4 +150,61 @@ def get_bfs_path():
 
 
 def get_dijkstra_path():
-    return [1,2]
+    graph = graph_data.graph_data[global_game_data.current_graph_index]
+    start_node = 0
+    target_node = global_game_data.target_node[global_game_data.current_graph_index]
+    exit_node = len(graph) - 1
+    
+    # Helper function to perform dijkstra from a given start to a given end
+    def dijkstra(graph, start, end):
+        # Priority Queue
+        pq = []
+        heapq.heappush(pq, (0, start, [start]))
+        visited = set()
+        
+        while pq:
+            dist, current_node, path = heapq.heappop(pq)
+            
+            # Skip the node if it's already been visited
+            if current_node in visited:
+                continue
+            visited.add(current_node)
+            
+            # If we reach the last node, return the path
+            if current_node == end:
+                return path
+            
+            # Explore neighbors
+            for neighbor in graph[current_node][1]:
+                if neighbor not in visited:
+                    edge_weight = calculate_distance(graph[current_node][0], graph[neighbor][0])
+                    heapq.heappush(pq, (dist + edge_weight, neighbor, path + [neighbor]))
+        
+        # Return empty list if no path is found to not break functionality
+        return []
+    
+    # Get path from start to target
+    start_to_target = dijkstra(graph, start_node, target_node)
+    if not start_to_target:
+        return []
+    
+    # Get path from target to exit
+    target_to_exit = dijkstra(graph, target_node, exit_node)
+    if not target_to_exit:
+        return []
+    
+    # Append the two paths and get rid of the overlap
+    full_path = start_to_target[:-1] + target_to_exit
+    
+    # Postconditions
+    assert full_path[0] == start_node, "Path must start at the Start node."
+    assert full_path[-1] == exit_node, "Path must end at the Exit node."
+    for i in range(len(full_path) - 1):
+        assert full_path[i + 1] in graph[full_path[i]][1], f"Edge {full_path[i]} -> {full_path[i + 1]} must exist."
+    
+    full_path = full_path[1:]
+    return full_path
+
+# Helper function for Euclidean distance found on Stack Overflow
+def calculate_distance(coord1, coord2):
+    return ((coord1[0] - coord2[0]) ** 2 + (coord1[1] - coord2[1]) ** 2) ** 0.5

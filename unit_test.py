@@ -2,7 +2,7 @@ import math
 import unittest
 import graph_data
 import global_game_data
-from pathing import get_random_path, get_dfs_path, get_bfs_path
+from pathing import get_random_path, get_dfs_path, get_bfs_path, get_dijkstra_path
 from permutation import sjt_perms, has_ham_cycle
 import perm_test_graph_data
 
@@ -147,6 +147,25 @@ class TestPathFinding(unittest.TestCase):
         # Test with a graph known to have no Hamiltonian cycle
         result = has_ham_cycle(perm_test_graph_data.perm_test_graph_data[0])
         self.assertEqual(result, -1, "Expected no Hamiltonian cycle but found one")
-
+        
+    # Dijkstra
+    def test_dijkstra_valid_path(self):
+        path = get_dijkstra_path()
+        self.assertTrue(len(path) > 0, "Dijkstra should return a valid path")
+        self.assertEqual(path[0], 1, "Path should start at first node after 0")
+        self.assertEqual(path[-1], len(graph_data.graph_data[global_game_data.current_graph_index]) - 1,
+                         "Path should end at Exit node")
+    
+    def test_dijkstra_hits_target(self):
+        path = get_dijkstra_path()
+        target_node = global_game_data.target_node[global_game_data.current_graph_index]
+        self.assertIn(target_node, path, "Path should include the target node")
+    
+    def test_dijkstra_no_invalid_edges(self):
+        path = get_dijkstra_path()
+        graph = graph_data.graph_data[global_game_data.current_graph_index]
+        for i in range(len(path) - 1):
+            self.assertIn(path[i + 1], graph[path[i]][1], f"Edge {path[i]} -> {path[i + 1]} must exist")
+        
 if __name__ == '__main__':
     unittest.main()
