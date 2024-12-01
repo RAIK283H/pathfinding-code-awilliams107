@@ -2,9 +2,10 @@ import math
 import unittest
 import graph_data
 import global_game_data
-from pathing import get_random_path, get_dfs_path, get_bfs_path, get_dijkstra_path
+from pathing import get_random_path, get_dfs_path, get_bfs_path, get_dijkstra_path, calculate_distance
 from permutation import sjt_perms, has_ham_cycle
 import perm_test_graph_data
+from f_w import reconstruct_path, floyd_warshall
 
 
 
@@ -166,6 +167,82 @@ class TestPathFinding(unittest.TestCase):
         graph = graph_data.graph_data[global_game_data.current_graph_index]
         for i in range(len(path) - 1):
             self.assertIn(path[i + 1], graph[path[i]][1], f"Edge {path[i]} -> {path[i + 1]} must exist")
+            
+    # Floyd-Warshall Tests
+    def test_floyd_warshall_correct_distances(self):
+        # Define a simple graph as adjacency matrix
+        graph_matrix = [
+            [0, 2, math.inf, 1],
+            [math.inf, 0, 3, math.inf],
+            [math.inf, math.inf, 0, 1],
+            [math.inf, math.inf, math.inf, 0]
+        ]
+        # Expected distances
+        expected_distances = [
+            [0, 2, 5, 1],
+            [math.inf, 0, 3, 4],
+            [math.inf, math.inf, 0, 1],
+            [math.inf, math.inf, math.inf, 0]
+        ]
+        
+        dist, _ = floyd_warshall(graph_matrix)
+        self.assertEqual(dist, expected_distances, "Floyd-Warshall did not compute correct distances")
+        
+    def test_floyd_warshall_reconstruct_path(self):
+        # Define a graph where paths are simple to verify
+        graph_matrix = [
+            [0, 3, math.inf, 7],
+            [math.inf, 0, 1, math.inf],
+            [math.inf, math.inf, 0, 2],
+            [math.inf, math.inf, math.inf, 0]
+        ]
+        dist, parent = floyd_warshall(graph_matrix)
+        
+        # Check reconstructed paths
+        self.assertEqual(reconstruct_path(parent, 0, 3), [0, 1, 2, 3], "Path reconstruction failed for 0 -> 3")
+        self.assertEqual(reconstruct_path(parent, 1, 2), [1, 2], "Path reconstruction failed for 1 -> 2")
+        self.assertEqual(reconstruct_path(parent, 0, 1), [0, 1], "Path reconstruction failed for 0 -> 1")
+
+    def test_floyd_warshall_disconnected_graph(self):
+        # Define a disconnected graph
+        graph_matrix = [
+            [0, math.inf, math.inf],
+            [math.inf, 0, math.inf],
+            [math.inf, math.inf, 0]
+        ]
+        
+        dist, parent = floyd_warshall(graph_matrix)
+        
+        # Check that distances are inf for disconnected nodes
+        self.assertEqual(dist[0][1], math.inf, "Disconnected nodes should have infinite distance")
+        self.assertEqual(reconstruct_path(parent, 0, 1), [0, 1], "Path reconstruction should return empty for disconnected nodes")
+
+    def test_floyd_warshall_dense_graph(self):
+        # Ensure algorithm does not break down under a dense graph
+        graph_matrix = [
+            [0, 1, 4, 6],
+            [1, 0, 2, 3],
+            [4, 2, 0, 1],
+            [6, 3, 1, 0]
+        ]
+        expected_distances = [
+            [0, 1, 3, 4],
+            [1, 0, 2, 3],
+            [3, 2, 0, 1],
+            [4, 3, 1, 0]
+        ]
+        dist, parent = floyd_warshall(graph_matrix)
+        self.assertEqual(dist, expected_distances, "Floyd-Warshall failed for a dense graph")
+        for i in range(len(graph_matrix)):
+            for j in range(len(graph_matrix)):
+                if i != j:
+                    path = reconstruct_path(parent, i, j)
+                    if path:
+                        path_weight = sum(graph_matrix[path[k]][path[k + 1]] for k in range(len(path) - 1))
+                        self.assertAlmostEqual(
+                            path_weight, dist[i][j], delta=1e-6,
+                            msg=f"Path weight mismatch for {i} -> {j}"
+                        )
         
 if __name__ == '__main__':
     unittest.main()
