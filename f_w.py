@@ -45,3 +45,27 @@ def convert_to_matrix(adjacency_list):
         for neighbor, weight in edges:
             matrix[i][neighbor] = weight
     return matrix
+
+def main():
+    adjacency_list = [
+        [(1, 4), (2, 1)],
+        [(2, 2), (3, 5)],
+        [(3, 1)],
+        []
+    ]
+    
+    graph_matrix = convert_to_matrix(adjacency_list)
+    dist, parent = floyd_warshall(graph_matrix)
+    
+    start_node = 0
+    end_node = 3
+    
+    shortest_path = reconstruct_path(parent, start_node, end_node)
+    if shortest_path:
+        print(f"Shortest path from node {start_node} to node {end_node}: {' -> '.join(map(str, shortest_path))}")
+        print(f"Distance: {dist[start_node][end_node]}")
+    else:
+        print(f"No path exists from node {start_node} to node {end_node}")
+        
+if __name__ == "__main__":
+    main()
